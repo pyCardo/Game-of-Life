@@ -124,18 +124,22 @@ void Grid::play() {
   }
 }
 
+int setter(int x, int y, int const width, int const size){
+  return x+y*width/size;
+}
+
 int main() {
   int const width{600};
   int const height{400};
   int const size{10};
 
   Grid grid{width, height, size};
-  grid.data[101].setAlive(true);
-  grid.data[102].setAlive(true);
-  grid.data[103].setAlive(true);
-  grid.data[160].setAlive(true);
-  grid.data[161].setAlive(true);
-  grid.data[162].setAlive(true);
+  grid.data[setter(10, 10, width, size)].setAlive(true);
+  grid.data[setter(11, 10, width, size)].setAlive(true);
+  grid.data[setter(12, 10, width, size)].setAlive(true);
+  grid.data[setter(9, 11, width, size)].setAlive(true);
+  grid.data[setter(10, 11, width, size)].setAlive(true);
+  grid.data[setter(11, 11, width, size)].setAlive(true);
   grid.play();
 }
 
