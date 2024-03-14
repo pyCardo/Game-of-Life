@@ -1,11 +1,19 @@
 # Game of Life in C++
-Risorse del progetto:
-- Wikipedia [_Conway's Game of Life_](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
+## Project resources
+- Wikipedia: [_Conway's Game of Life_](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
+- [LifeWiki](https://conwaylife.com/wiki/Main_Page)
+## How to
+Compile using:
 ~~~bash
-$ g++ gameOfLife.cpp -Wall -Wextra -lsfml-graphics -lsfml-window -lsfml-system
-$ export DISPLAY=:0
-$ export DISPLAY="$(/sbin/ip route | awk '/default/ { print $3 }'):0"
-$ export LIBGL_ALWAYS_INDIRECT=0
+$ g++ name.cpp -Wall -Wextra -DNDEBUG -lsfml-graphics -lsfml-window -lsfml-system
 ~~~
-Execute inside GUI (MobaXterm).
-NOTE: add time and population counters.
+To set your screen on WSL:
+~~~bash
+$ export DISPLAY=:0
+~~~
+## Instructions before committing!
+- Do **not** commit the output file
+## Next up: Issues & Features
+1) Add time and population counters
+2) Reduce algorithm complexity
+3) Try implementing a 2D vector
