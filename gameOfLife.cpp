@@ -65,17 +65,22 @@ class Grid {
     data = std::vector<Cell>(rows_ * columns_);
   };
 
-  void draw(int, int);
+  void draw(int, int, bool);
+  void cancel(int, int);
   void play();
 };
 
-void Grid::draw(int c, int r) {
+void Grid::draw(int c, int r, bool color) {
   assert(c >= 0 && c < columns_);
   assert(r >= 0 && r < rows_);
 
   for (int i{c * cellSize_}; i < (c + 1) * cellSize_; i++) {
     for (int j{r * cellSize_}; j < (r + 1) * cellSize_; j++) {
-      image_.setPixel(i, j, sf::Color::White);
+      if (color) {
+        image_.setPixel(i, j, sf::Color::White);
+      } else {
+        image_.setPixel(i, j, sf::Color::Black);
+      }
     }
   }
 }
@@ -103,7 +108,7 @@ void Grid::play() {
       assert(x + y * columns_ == i);
       data[i].nextAlive = data[i].update(data, x, y, columns_);
       // assert(data[i].nextAlive == false);
-      if (data[i].nextAlive) draw(x, y);
+      draw(x, y, data[i].nextAlive);
     }
 
     for (int i{0}; i < static_cast<int>(data.size()); i++) {
@@ -125,9 +130,12 @@ int main() {
   int const size{10};
 
   Grid grid{width, height, size};
-  grid.data[83].setAlive(true);
-  grid.data[84].setAlive(true);
-  grid.data[85].setAlive(true);
+  grid.data[101].setAlive(true);
+  grid.data[102].setAlive(true);
+  grid.data[103].setAlive(true);
+  grid.data[160].setAlive(true);
+  grid.data[161].setAlive(true);
+  grid.data[162].setAlive(true);
   grid.play();
 }
 
