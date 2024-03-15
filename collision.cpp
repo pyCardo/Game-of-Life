@@ -27,7 +27,7 @@ int main() {
   board.data[setter(14, 14, width, size)].setAlive(true);
   board.data[setter(17, 16, width, size)].setAlive(true);
   board.data[setter(16, 16, width, size)].setAlive(true);
-  board.data[setter(16, 15, width, size)].setAlive(true);
+  board.data[setter(17, 15, width, size)].setAlive(true);
 
   board.play();
 }

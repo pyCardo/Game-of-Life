@@ -7,13 +7,10 @@ Compile using:
 ~~~bash
 $ g++ name.cpp -Wall -Wextra -DNDEBUG -lsfml-graphics -lsfml-window -lsfml-system
 ~~~
-To set your screen on WSL:
-~~~bash
-$ export DISPLAY=:0
-~~~
 ## Instructions before committing!
 - Do **not** commit the output file
 ## Next up: Issues & Features
-1) Add time and population counters
-2) Reduce algorithm complexity
-3) Try implementing a 2D vector
+1. Add time and population counters
+2. Reduce algorithm complexity
+3. Try implementing a 2D vector
+4. Create graphical setter

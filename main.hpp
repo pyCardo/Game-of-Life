@@ -4,6 +4,11 @@
 #include <thread>
 #include <vector>
 
+namespace constants {
+  auto const COLOR_DEAD = sf::Color::Black;
+  auto const COLOR_ALIVE = sf::Color::White;
+}
+
 class Cell {
   bool isAlive_{false};
 
@@ -11,10 +16,10 @@ class Cell {
   bool nextAlive;
   bool getAlive() { return isAlive_; };
   void setAlive(bool S) { isAlive_ = S; }
-  bool update(std::vector<Cell>, int, int, int);
+  bool update(std::vector<Cell> const&, int, int, int);
 };
 
-bool Cell::update(std::vector<Cell> data, int xIndex, int yIndex, int rowSize) {
+bool Cell::update(std::vector<Cell> const& data, int xIndex, int yIndex, int rowSize) {
   int neighbours{};
 
   for (int x{xIndex - 1}; x <= xIndex + 1; x++) {
@@ -39,7 +44,7 @@ bool Cell::update(std::vector<Cell> data, int xIndex, int yIndex, int rowSize) {
   return false;
 }
 
-class Grid {
+class Board {
   sf::Image image_;
   int width_;
   int height_;
@@ -50,13 +55,13 @@ class Grid {
  public:
   std::vector<Cell> data;
 
-  Grid(int w, int h, int cs) : width_{w}, height_{h}, cellSize_{cs} {
+  Board(int w, int h, int cs) : width_{w}, height_{h}, cellSize_{cs} {
     assert(w > 0 && h > 0 && cellSize_ > 0);
     assert(w % cellSize_ == 0 && h % cellSize_ == 0);
 
     rows_ = h / cellSize_;
     columns_ = w / cellSize_;
-    image_.create(w, h, sf::Color::Black);
+    image_.create(w, h, constants::COLOR_DEAD);
     data = std::vector<Cell>(rows_ * columns_);
   };
 
@@ -64,29 +69,29 @@ class Grid {
   void play();
 };
 
-void Grid::draw(int c, int r, bool color) {
+void Board::draw(int c, int r, bool alive) {
   assert(c >= 0 && c < columns_);
   assert(r >= 0 && r < rows_);
 
   for (int i{c * cellSize_}; i < (c + 1) * cellSize_; i++) {
     for (int j{r * cellSize_}; j < (r + 1) * cellSize_; j++) {
-      if (color) {
-        image_.setPixel(i, j, sf::Color::White);
+      if (alive) {
+        image_.setPixel(i, j, constants::COLOR_ALIVE);
       } else {
-        image_.setPixel(i, j, sf::Color::Black);
+        image_.setPixel(i, j, constants::COLOR_DEAD);
       }
     }
   }
 }
 
-void Grid::play() {
+void Board::play() {
   sf::RenderWindow window(sf::VideoMode(width_, height_), "Game of Life");
   sf::Texture texture;
   sf::Sprite sprite;
   sf::Event event;
 
   texture.loadFromImage(image_);
-  window.setFramerateLimit(10);
+  window.setFramerateLimit(30);
 
   while (window.isOpen()) {
     while (window.pollEvent(event)) {
@@ -95,7 +100,7 @@ void Grid::play() {
       }
     }
 
-    // generate the new grid
+    // generate the new board
     for (int i{0}; i < static_cast<int>(data.size()); i++) {
       int x{i % columns_};
       int y{i / columns_};
@@ -109,7 +114,7 @@ void Grid::play() {
       }
     }
 
-    // refresh the grid
+    // refresh the board
     for (int i{0}; i < static_cast<int>(data.size()); i++) {
       data[i].setAlive(data[i].nextAlive);
     }
