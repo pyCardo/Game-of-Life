@@ -5,8 +5,8 @@
 #include <vector>
 
 namespace constants {
-  auto const COLOR_DEAD = sf::Color::Black;
-  auto const COLOR_ALIVE = sf::Color::White;
+auto const COLOR_DEAD = sf::Color::Black;
+auto const COLOR_ALIVE = sf::Color::White;
 }
 
 class Cell {
@@ -19,7 +19,8 @@ class Cell {
   bool update(std::vector<Cell> const&, int, int, int);
 };
 
-bool Cell::update(std::vector<Cell> const& data, int xIndex, int yIndex, int rowSize) {
+bool Cell::update(std::vector<Cell> const& data, int xIndex, int yIndex,
+                  int rowSize) {
   int neighbours{};
 
   for (int x{xIndex - 1}; x <= xIndex + 1; x++) {
@@ -89,6 +90,15 @@ void Board::play() {
   sf::Texture texture;
   sf::Sprite sprite;
   sf::Event event;
+
+  // generate first board
+  for (int i{0}; i < static_cast<int>(data.size()); i++) {
+    int x{i % columns_};
+    int y{i / columns_};
+    if (data[i].getAlive()) {
+      draw(x, y, true);
+    }
+  }
 
   texture.loadFromImage(image_);
   window.setFramerateLimit(30);
