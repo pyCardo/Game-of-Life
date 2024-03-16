@@ -7,7 +7,9 @@
 namespace constants {
 auto const COLOR_DEAD = sf::Color::Black;
 auto const COLOR_ALIVE = sf::Color::White;
-}
+auto const OFFSETS = std::vector<std::pair<int, int>>{
+    {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+}  // namespace constants
 
 class Cell {
   bool isAlive_{false};
@@ -21,26 +23,25 @@ class Cell {
 
 bool Cell::update(std::vector<Cell> const& data, int xIndex, int yIndex,
                   int rowSize) {
-  int neighbours{};
+  int neighbors{};
 
-  for (int x{xIndex - 1}; x <= xIndex + 1; x++) {
-    for (int y{yIndex - 1}; y <= yIndex + 1; y++) {
-      if (x < 0 || y < 0 || x >= rowSize ||
-          y >= (static_cast<int>(data.size()) / rowSize))
-        continue;  // skip the elements outside of the border
-      if (x == xIndex && y == yIndex) {
-        continue;
-      }
+  for (const auto& offset : constants::OFFSETS) {
+    int x = xIndex + offset.first;
+    int y = yIndex + offset.second;
+
+    // check if the neighbor is within the bounds of the grid
+    if (x >= 0 && x < rowSize && y >= 0 &&
+        y < static_cast<int>(data.size()) / rowSize) {
       if (data[x + y * rowSize].isAlive_) {
-        neighbours++;
+        neighbors++;
       }
     }
   }
 
   if (isAlive_) {
-    if (neighbours == 2 || neighbours == 3) return true;
+    if (neighbors == 2 || neighbors == 3) return true;
   } else {
-    if (neighbours == 3) return true;
+    if (neighbors == 3) return true;
   }
   return false;
 }
@@ -55,6 +56,8 @@ class Board {
 
  public:
   std::vector<Cell> data;
+  // sf::RectangleShape livingCell;
+  // sf::RectangleShape deadCell;
 
   Board(int w, int h, int cs) : width_{w}, height_{h}, cellSize_{cs} {
     assert(w > 0 && h > 0 && cellSize_ > 0);
@@ -64,13 +67,18 @@ class Board {
     columns_ = w / cellSize_;
     image_.create(w, h, constants::COLOR_DEAD);
     data = std::vector<Cell>(rows_ * columns_);
+
+    // livingCell.setSize(sf::Vector2f(cellSize_, cellSize_));
+    // livingCell.setFillColor(constants::COLOR_ALIVE);
+    // deadCell.setSize(sf::Vector2f(cellSize_, cellSize_));
+    // livingCell.setFillColor(constants::COLOR_DEAD);
   };
 
-  void draw(int, int, bool);
+  void paint(int, int, bool);
   void play();
 };
 
-void Board::draw(int c, int r, bool alive) {
+void Board::paint(int c, int r, bool alive) {
   assert(c >= 0 && c < columns_);
   assert(r >= 0 && r < rows_);
 
@@ -96,13 +104,14 @@ void Board::play() {
     int x{i % columns_};
     int y{i / columns_};
     if (data[i].getAlive()) {
-      draw(x, y, true);
+      paint(x, y, true);
     }
   }
 
   texture.loadFromImage(image_);
   window.setFramerateLimit(30);
 
+  // game loop
   while (window.isOpen()) {
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
@@ -110,7 +119,13 @@ void Board::play() {
       }
     }
 
-    // generate the new board
+    // draw current board
+    texture.update(image_);
+    sprite.setTexture(texture);
+    window.draw(sprite);
+    window.display();
+
+    // generate the next board
     for (int i{0}; i < static_cast<int>(data.size()); i++) {
       int x{i % columns_};
       int y{i / columns_};
@@ -119,8 +134,8 @@ void Board::play() {
       data[i].nextAlive = data[i].update(data, x, y, columns_);
 
       if (data[i].getAlive() !=
-          data[i].nextAlive) {  // it only draws the cell if it's been modified
-        draw(x, y, data[i].nextAlive);
+          data[i].nextAlive) {  // it only paints the cell if it's been modified
+        paint(x, y, data[i].nextAlive);
       }
     }
 
@@ -128,11 +143,6 @@ void Board::play() {
     for (int i{0}; i < static_cast<int>(data.size()); i++) {
       data[i].setAlive(data[i].nextAlive);
     }
-
-    texture.update(image_);
-    sprite.setTexture(texture);
-    window.draw(sprite);
-    window.display();
   }
 }
 
