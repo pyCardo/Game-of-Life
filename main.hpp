@@ -7,6 +7,7 @@
 namespace constants {
 auto const COLOR_DEAD = sf::Color::Black;
 auto const COLOR_ALIVE = sf::Color::White;
+auto const COLOR_BOUND = sf::Color(66, 71, 76, 255);  // RGBA Gray
 auto const OFFSETS = std::vector<std::pair<int, int>>{
     {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 }  // namespace constants
@@ -47,17 +48,17 @@ bool Cell::update(std::vector<Cell> const& data, int xIndex, int yIndex,
 }
 
 class Board {
-  sf::Image image_;
   int width_;
   int height_;
   int cellSize_;
   int rows_;
   int columns_;
+  bool isPlaying_{true};
 
  public:
   std::vector<Cell> data;
-  // sf::RectangleShape livingCell;
-  // sf::RectangleShape deadCell;
+  int dataSize;
+  sf::RectangleShape square;
 
   Board(int w, int h, int cs) : width_{w}, height_{h}, cellSize_{cs} {
     assert(w > 0 && h > 0 && cellSize_ > 0);
@@ -65,32 +66,30 @@ class Board {
 
     rows_ = h / cellSize_;
     columns_ = w / cellSize_;
-    image_.create(w, h, constants::COLOR_DEAD);
-    data = std::vector<Cell>(rows_ * columns_);
 
-    // livingCell.setSize(sf::Vector2f(cellSize_, cellSize_));
-    // livingCell.setFillColor(constants::COLOR_ALIVE);
-    // deadCell.setSize(sf::Vector2f(cellSize_, cellSize_));
-    // livingCell.setFillColor(constants::COLOR_DEAD);
+    data = std::vector<Cell>(rows_ * columns_);
+    dataSize = static_cast<int>(data.size());
+
+    square.setSize(sf::Vector2f(cellSize_ - 1, cellSize_ - 1));
+    square.setOutlineThickness(1);
+    square.setOutlineColor(constants::COLOR_BOUND);
   };
 
-  void paint(int, int, bool);
+  void paint(sf::RenderWindow&, int, int, bool);
   void play();
 };
 
-void Board::paint(int c, int r, bool alive) {
+void Board::paint(sf::RenderWindow& window, int c, int r, bool alive) {
   assert(c >= 0 && c < columns_);
   assert(r >= 0 && r < rows_);
 
-  for (int i{c * cellSize_}; i < (c + 1) * cellSize_; i++) {
-    for (int j{r * cellSize_}; j < (r + 1) * cellSize_; j++) {
-      if (alive) {
-        image_.setPixel(i, j, constants::COLOR_ALIVE);
-      } else {
-        image_.setPixel(i, j, constants::COLOR_DEAD);
-      }
-    }
+  square.setPosition(c * cellSize_, r * cellSize_);
+  if (alive) {
+    square.setFillColor(constants::COLOR_ALIVE);
+  } else {
+    square.setFillColor(constants::COLOR_DEAD);
   }
+  window.draw(square);
 }
 
 void Board::play() {
@@ -100,48 +99,57 @@ void Board::play() {
   sf::Event event;
 
   // generate first board
-  for (int i{0}; i < static_cast<int>(data.size()); i++) {
+  for (int i{0}; i < dataSize; i++) {
     int x{i % columns_};
     int y{i / columns_};
     if (data[i].getAlive()) {
-      paint(x, y, true);
+      paint(window, x, y, true);
+    } else {
+      paint(window, x, y, false);
     }
   }
 
-  texture.loadFromImage(image_);
   window.setFramerateLimit(30);
 
   // game loop
   while (window.isOpen()) {
+    // event handling
     while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed) {
-        window.close();
+      switch (event.type) {
+        case sf::Event::Closed:
+          window.close();
+          break;
+        case sf::Event::KeyPressed:
+          if (event.key.code == sf::Keyboard::Space) {
+            isPlaying_ = !isPlaying_;
+          }
+          break;
+        default:
+          break;
       }
     }
 
-    // draw current board
-    texture.update(image_);
-    sprite.setTexture(texture);
-    window.draw(sprite);
     window.display();
 
-    // generate the next board
-    for (int i{0}; i < static_cast<int>(data.size()); i++) {
-      int x{i % columns_};
-      int y{i / columns_};
-      assert(x + y * columns_ == i);
+    if (isPlaying_) {
+      // generate the next board
+      for (int i{0}; i < dataSize; i++) {
+        int x{i % columns_};
+        int y{i / columns_};
+        assert(x + y * columns_ == i);
 
-      data[i].nextAlive = data[i].update(data, x, y, columns_);
+        data[i].nextAlive = data[i].update(data, x, y, columns_);
 
-      if (data[i].getAlive() !=
-          data[i].nextAlive) {  // it only paints the cell if it's been modified
-        paint(x, y, data[i].nextAlive);
+        if (data[i].getAlive() !=
+            data[i].nextAlive) {  // it only paints the cell
+                                  // if it's been modified
+          paint(window, x, y, data[i].nextAlive);
+        }
       }
-    }
-
-    // refresh the board
-    for (int i{0}; i < static_cast<int>(data.size()); i++) {
-      data[i].setAlive(data[i].nextAlive);
+      // refresh the board
+      for (int i{0}; i < dataSize; i++) {
+        data[i].setAlive(data[i].nextAlive);
+      }
     }
   }
 }
